@@ -6,6 +6,10 @@
 # Exclude _data folder, since it should all be pulled automatically (unless in the manual folder)
 /_data/*
 
+# Exclude data_manual folder, since it should all be pulled automatically 
+
+/data_manual/*
+
 # Exclude _output directory since it's should generated automatically
 /_output/*
 
