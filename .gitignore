@@ -6,12 +6,14 @@
 # Exclude _data folder, since it should all be pulled automatically (unless in the manual folder)
 /_data/*
 
+*.parquet
 # Exclude data_manual folder, since it should all be pulled automatically 
 
 /data_manual/*
 
 # Exclude _output directory since it's should generated automatically
 /_output/*
+
 
 # Exclude PDFs generated from source LaTeX files, which are kept in the reports directory
 /reports/*.pdf

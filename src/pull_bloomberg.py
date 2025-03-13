@@ -7,30 +7,26 @@ first install xbbg
 """
 
 import pandas as pd
-import settings
+import config
+
+END_DATE = "2025-03-01"
 from pathlib import Path
+from xbbg import blp
+DATA_DIR = config.DATA_DIR
+START_DATE = config.START_DATE
+END_DATE = config.END_DATE
 
-DATA_DIR = settings.DATA_DIR
-START_DATE = settings.START_DATE
-END_DATE = settings.END_DATE
+def pull_bbg_data(start_date,end_date):
+    
+    df = blp.bdh(['SPX Index','SX5E Index','NKY Index','USGG30YR Index','GDBR30 Index','GJGB30 Index'],"PX_LAST", start_date, end_date)
+    df.columns = df.columns.droplevel(1)
+    df.index.name = 'Date'
 
-def pull_bbg_data(end_date=END_DATE):
-    
-    bbg_df = pd.DataFrame()
-    bbg_df['dividend yield'] = blp.bdh("SPX Index","EQY_DVD_YLD_12m", START_DATE, end_date)[("SPX Index","EQY_DVD_YLD_12m")]
-    
-    bbg_df['index'] = blp.bdh("SPX Index","px_last", START_DATE, end_date)[("SPX Index","px_last")]
-    
-    bbg_df['futures'] = pd.concat([blp.bdh("SP1 Index","px_last", START_DATE, "1997-08-31")[("SP1 Index","px_last")],
-                                    blp.bdh("ES1 Index","px_last", "1997-09-30", end_date)[("ES1 Index","px_last")]])
-    
-    bbg_df.index.name = 'Date'
-
-    return bbg_df
+    return df
 
 
 if __name__ == "__main__":
-    from xbbg import blp
-    df = pull_bbg_data(end_date=END_DATE)
-    path = Path(DATA_DIR) / "bloomberg.parquet"
+
+    df = pull_bbg_data(START_DATE,END_DATE)
+    path = Path(DATA_DIR) / "bloomberg_index_data.parquet"
     df.to_parquet(path)
