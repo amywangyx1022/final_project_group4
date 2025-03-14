@@ -10,7 +10,7 @@ from settings import config
 from pathlib import Path
 from xbbg import blp
 
-END_DATE = config("END_DATE")
+END_DATE = config("CURR_END_DATE")
 DATA_DIR = config("DATA_DIR")
 START_DATE = config("START_DATE")
 BASE_DIR = config("BASE_DIR")
