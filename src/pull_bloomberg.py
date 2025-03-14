@@ -7,14 +7,17 @@ first install xbbg
 """
 
 import pandas as pd
-import config
+
+from settings import config
 
 END_DATE = "2025-03-01"
 from pathlib import Path
 from xbbg import blp
-DATA_DIR = config.DATA_DIR
-START_DATE = config.START_DATE
-END_DATE = config.END_DATE
+
+END_DATE = config("END_DATE")
+DATA_DIR = config("DATA_DIR")
+START_DATE = config("START_DATE")
+
 
 def pull_bbg_data(start_date,end_date):
     
