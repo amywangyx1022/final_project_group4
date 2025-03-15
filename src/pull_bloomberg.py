@@ -1,24 +1,21 @@
 """
-This module loads the S&P 500 index, Dividend yields, and all active futures during 
-the given period from Bloomberg. 
+This module loads the S&P 500 index, Nikkei, Eurostoxx index as well as 30 year yields from each from bloomberg
 
 You must have a Bloomberg terminal open on this computer to run. You must
 first install xbbg
 """
 
 import pandas as pd
-
 from settings import config
-
-END_DATE = "2025-03-01"
 from pathlib import Path
 from xbbg import blp
 
-END_DATE = config("END_DATE")
+END_DATE = config("CURR_END_DATE")
 DATA_DIR = config("DATA_DIR")
 START_DATE = config("START_DATE")
 BASE_DIR = config("BASE_DIR")
 USE_BBG = config("USE_BBG")
+
 def pull_bbg_data(start_date,end_date):
     
     df = blp.bdh(['SPX Index','SX5E Index','NKY Index','USGG30YR Index','GDBR30 Index','GJGB30 Index'],"PX_LAST", start_date, end_date)
