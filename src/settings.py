@@ -75,6 +75,8 @@ d["END_DATE"] = _config("END_DATE", default="2022-12-31", cast=to_datetime)
 d["PIPELINE_DEV_MODE"] = _config("PIPELINE_DEV_MODE", default=True, cast=bool)
 d["USE_BBG"] = _config("USE_BBG", default=True, cast=bool)
 d["PIPELINE_THEME"] = _config("PIPELINE_THEME", default="pipeline")
+d["CURR_END_DATE"] = _config("CURR_END_DATE", default="2022-12-31")
+
 
 ## Paths
 d["DATA_DIR"] = if_relative_make_abs(_config('DATA_DIR', default=Path('_data'), cast=Path))
