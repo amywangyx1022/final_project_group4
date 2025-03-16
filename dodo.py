@@ -116,23 +116,21 @@ def task_config():
     }
 
 
-def task_pull_fred():
+def task_pull_bloomberg():
     """ """
     file_dep = [
         "./src/settings.py",
-        "./src/pull_fred.py",
-        "./src/pull_ofr_api_data.py",
+        "./src/pull_bloomberg.py"
     ]
     targets = [
-        DATA_DIR / "fred.parquet",
-        DATA_DIR / "ofr_public_repo_data.parquet",
+        DATA_DIR / "bloomberg_dividend_data.parquet",
+        DATA_DIR / "excel_dividend_data.parquet",
     ]
 
     return {
         "actions": [
             "ipython ./src/settings.py",
-            "ipython ./src/pull_fred.py",
-            "ipython ./src/pull_ofr_api_data.py",
+            "ipython ./src/pull_bloomberg.py"
         ],
         "targets": targets,
         "file_dep": file_dep,
@@ -147,38 +145,33 @@ def task_pull_fred():
     }
 
 
-##############################$
-## Demo: Other misc. data pulls
-##############################$
-# def task_pull_other():
-#     """ """
-#     file_dep = [
-#         "./src/pull_bloomberg.py",
-#         "./src/pull_CRSP_Compustat.py",
-#         "./src/pull_CRSP_stock.py",
-#         "./src/pull_fed_yield_curve.py",
-#         ]
-#     file_output = [
-#         "bloomberg.parquet",
-#         "CRSP_Compustat.parquet",
-#         "CRSP_stock.parquet",
-#         "fed_yield_curve.parquet",
-#         ]
-#     targets = [DATA_DIR / file for file in file_output]
+def task_clean_bloomberg_data():
+    """ """
+    file_dep = [
+        "./src/settings.py",
+        "./src/clean_data.py"
+    ]
+    targets = [
+        DATA_DIR / "cleaned_current_index_data.parquet",
+        DATA_DIR / "cleaned_current_dividend_data.parquet",
+        DATA_DIR / "calculated_current_yields.parquet",
+        DATA_DIR / "combined_current_data.parquet",
+       
+    ]
 
-#     return {
-#         "actions": [
-#             "ipython ./src/pull_bloomberg.py",
-#             "ipython ./src/pull_CRSP_Compustat.py",
-#             "ipython ./src/pull_CRSP_stock.py",
-#             "ipython ./src/pull_fed_yield_curve.py",
-#         ],
-#         "targets": targets,
-#         "file_dep": file_dep,
-#         "clean": [],  # Don't clean these files by default.
-#     }
+    return {
+        "actions": [
+            "ipython ./src/clean_data.py"
+        ],
+        "targets": targets,
+        "file_dep": file_dep,
+        "clean": True,
+    }
+
+    
 
 
+#TODO: CHAGNE THE EXAMPLE TABLE
 def task_summary_stats():
     """ """
     file_dep = ["./src/example_table.py"]
@@ -244,21 +237,15 @@ def task_chart_repo_rates():
         "clean": True,
     }
 
-
+#TODO fix this
 notebook_tasks = {
-    "01_example_notebook_interactive.ipynb": {
-        "file_dep": [],
-        "targets": [],
-    },
-    "02_example_with_dependencies.ipynb": {
-        "file_dep": ["./src/pull_fred.py"],
-        "targets": [Path(OUTPUT_DIR) / "GDP_graph.png"],
-    },
-    "03_public_repo_summary_charts.ipynb": {
+
+    "brief_tour.ipynb": {
         "file_dep": [
-            "./src/pull_fred.py",
-            "./src/pull_ofr_api_data.py",
-            "./src/pull_public_repo_data.py",
+            "./src/pull_bloomberg.py",
+             "./src/clean_table.py"
+            "./src/calc_functions.py",
+            "./src/TABLE1_replication.py",
         ],
         "targets": [
             OUTPUT_DIR / "repo_rate_spikes_and_relative_reserves_levels.png",
@@ -371,177 +358,3 @@ def task_compile_latex_docs():
         "file_dep": file_dep,
         "clean": True,
     }
-
-notebook_sphinx_pages = [
-    "./docs/notebooks/EX_" + notebook.split(".")[0] + ".html"
-    for notebook in notebook_tasks.keys()
-]
-sphinx_targets = [
-    "./docs/index.html",
-    "./docs/myst_markdown_demos.html",
-    "./docs/apidocs/index.html",
-    *notebook_sphinx_pages,
-]
-
-def task_compile_sphinx_docs():
-    """Compile Sphinx Docs"""
-    notebook_scripts = [
-        OUTPUT_DIR / ("_" + notebook.split(".")[0] + ".py")
-        for notebook in notebook_tasks.keys()
-    ]
-    file_dep = [
-        "./README.md",
-        "./pipeline.json",
-        *notebook_scripts,
-    ]
-
-    return {
-        "actions": [
-            "chartbook generate -f",
-        ],  # Use docs as build destination
-        # "actions": ["sphinx-build -M html ./docs/ ./docs/_build"], # Previous standard organization
-        "targets": sphinx_targets,
-        "file_dep": file_dep,
-        "task_dep": ["run_notebooks",],
-        "clean": True,
-    }
-
-
-###############################################################
-## Uncomment the task below if you have R installed. See README
-###############################################################
-
-
-# def task_install_r_packages():
-#     """Example R plots"""
-#     file_dep = [
-#         "r_requirements.txt",
-#         "./src/install_packages.R",
-#     ]
-#     targets = [OUTPUT_DIR / "R_packages_installed.txt"]
-
-#     return {
-#         "actions": [
-#             "Rscript ./src/install_packages.R",
-#         ],
-#         "targets": targets,
-#         "file_dep": file_dep,
-#         "clean": True,
-#     }
-
-
-# def task_example_r_script():
-#     """Example R plots"""
-#     file_dep = [
-#         "./src/pull_fred.py",
-#         "./src/example_r_plot.R"
-#     ]
-#     targets = [
-#         OUTPUT_DIR / "example_r_plot.png",
-#     ]
-
-#     return {
-#         "actions": [
-#             "Rscript ./src/example_r_plot.R",
-#         ],
-#         "targets": targets,
-#         "file_dep": file_dep,
-#         "task_dep": ["pull_fred"],
-#         "clean": True,
-#     }
-
-
-# rmarkdown_tasks = {
-#     "04_example_regressions.Rmd": {
-#         "file_dep": ["./src/pull_fred.py"],
-#         "targets": [],
-#     },
-#     # "04_example_regressions.Rmd": {
-#     #     "file_dep": ["./src/pull_fred.py"],
-#     #     "targets": [],
-#     # },
-# }
-
-
-# def task_knit_RMarkdown_files():
-#     """Preps the RMarkdown files for presentation format.
-#     This will knit the RMarkdown files for easier sharing of results.
-#     """
-#     # def knit_string(file):
-#     #     return f"""Rscript -e "library(rmarkdown); rmarkdown::render('./src/04_example_regressions.Rmd', output_format='html_document', output_dir='./_output/')"""
-#     str_output_dir = str(OUTPUT_DIR).replace("\\", "/")
-#     def knit_string(file):
-#         """
-#         Properly escapes the quotes and concatenates so that this will run.
-#         The single line version above was harder to get right because of weird
-#         quotation escaping errors.
-
-#         Example command:
-#         Rscript -e "library(rmarkdown); rmarkdown::render('./src/04_example_regressions.Rmd', output_format='html_document', output_dir='./_output/')
-#         """
-#         return (
-#             "Rscript -e "
-#             '"library(rmarkdown); '
-#             f"rmarkdown::render('./src/{file}.Rmd', "
-#             "output_format='html_document', "
-#             f"output_dir='{str_output_dir}')\""
-#         )
-
-#     for notebook in rmarkdown_tasks.keys():
-#         notebook_name = notebook.split(".")[0]
-#         file_dep = [f"./src/{notebook}", *rmarkdown_tasks[notebook]["file_dep"]]
-#         html_file = f"{notebook_name}.html"
-#         targets = [f"{OUTPUT_DIR / html_file}", *rmarkdown_tasks[notebook]["targets"]]
-#         actions = [
-#             # "module use -a /opt/aws_opt/Modulefiles",
-#             # "module load R/4.2.2",
-#             knit_string(notebook_name)
-#         ]
-
-#         yield {
-#             "name": notebook,
-#             "actions": actions,
-#             "file_dep": file_dep,
-#             "targets": targets,
-#             "clean": True,
-#             # "verbosity": 1,
-#         }
-
-
-###################################################################
-## Uncomment the task below if you have Stata installed. See README
-###################################################################
-
-# if OS_TYPE == "windows":
-#     STATA_COMMAND = f"{config.STATA_EXE} /e"
-# elif OS_TYPE == "nix":
-#     STATA_COMMAND = f"{config.STATA_EXE} -b"
-# else:
-#     raise ValueError(f"OS_TYPE {OS_TYPE} is unknown")
-
-# def task_example_stata_script():
-#     """Example Stata plots
-
-#     Make sure to run
-#     ```
-#     net install doenv, from(https://github.com/vikjam/doenv/raw/master/) replace
-#     ```
-#     first to install the doenv package: https://github.com/vikjam/doenv.
-#     """
-#     file_dep = [
-#         "./src/pull_fred.py",
-#         "./src/example_stata_plot.do",
-#     ]
-#     targets = [
-#         OUTPUT_DIR / "example_stata_plot.png",
-#     ]
-#     return {
-#         "actions": [
-#             f"{STATA_COMMAND} do ./src/example_stata_plot.do",
-#         ],
-#         "targets": targets,
-#         "file_dep": file_dep,
-#         "task_dep": ["pull_fred"],
-#         "clean": True,
-#         "verbosity": 2,
-#     }

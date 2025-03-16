@@ -25,8 +25,6 @@ def calc_pct_returns(data_dir=DATA_DIR):
     return cum_returns
 
 
-
-
 if __name__ == "__main__":
     
     df = calc_pct_returns(DATA_DIR)
