@@ -1,0 +1,156 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{caption}
+
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with`a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\title{Coronavirus: Impact on Stock Prices and Growth Expectations}
+\author{Amy Wang, Charlotte Zhou}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}\noindent
+In this project, we endeavor to replicate and validate the 
+findings of \cite{gormsen2020coronavirus} in the study ``Coronavirus: Impact on Stock Prices and Growth Expectations''
+ The core objective is to reproduce the results 
+presented in Figure 1,Figure 5, and Table 1.\\
+Later we found out that the dividend future data that used to construct figure 5 and table 1 used
+ some of the proprietary data from Goldman Sachs and BNP Paribas, because
+  index dividend futures and swaps were trade in over-the-counter market \cite{van2013equity}
+
+But we ran our own version of analysis using exchange data since 2008 (for Eurostoxx), 
+and fewer data points for Nikkei and S\&P 500.
+\newline
+\newline
+The replication employs data from Bloomberg for S\&P 500 futures and 
+utilizes the Fama-Bliss database to closely follow the original study's 
+methodology. We reconstruct the statistical relationships and analyze 
+the regression coefficients (\( \beta \)) and the adjusted R-squared 
+values to assess the predictability of stock returns based on the 
+relative pricing of dividends. Our efforts focus on matching the 
+precision of the original work, acknowledging the absence of standard
+ errors in our regression outputs.
+\end{abstract}
+
+\section{Introduction}
+This project replicates the pivotal findings in the article. Our 
+objective is to replicate Table 1 and Table 2. Utilizing Bloomberg 
+data for S\&P 500 futures and zero-coupon yields from the Federal 
+Reserve, we not only include analysis from January 1988 to June 
+2017 time frame, but also include data up to January 2024. This 
+replication effort not only underscores the importance of empirical 
+validation in financial research but also confronts the challenges 
+of data availability and methodological adaptation inherent in such 
+scholarly pursuits.
+
+\section{Replication Tables}
+Table 1 is a statistical summary of \( pr_t \), \( pd_t \). \( pr_t \) 
+is price ratio of long- to short-term dividend prices, which is calculated by 
+\begin{equation}
+pr_t = ln \left( \frac{\text{Price of Long-term Dividends}}{\text{Price of Short-term Dividends}} \right) = \ln \left( \frac{P^{T+}}{P^{T-}} \right)
+\end{equation}
+where, \(P^{T+}\) is the multiplication of price of ZCB (zero coupon bonds) 
+that matures in T periods and futures price that is the Q-expectation of 
+future stock price. \(P^{T-}\) is the portion of the index value that is not 
+accounted for by the futures component, which is S\&P 500 stock prices minus \(P^{T+}\)
+\newline
+\newline
+\( pd_t \) is log price-dividend ratio, which is calculated by 
+\begin{equation}
+pd_t = \ln \left(\frac{P_t}{D_t} \right)
+\end{equation}
+Here is the replicated Table1 in the article
+\begin{table}[H]
+\centering
+\input{../output/table_1.tex}
+\caption*{Table 1: Summary Statistics}
+\label{tab:your_label}
+\end{table}
+
+Here is the Table1 with updated numbers, which means using data until 2024-01-31
+\begin{table}[H]
+\centering
+\input{../output/table_1_curr.tex}
+\caption*{Table 1: Updated Summary Statistics}
+\label{tab:your_label}
+\end{table}
+
+Table 2 reports the results of the regression that predicts 
+the 12-month S\&P 500 index return via \( pr_t \), \( pd_t \), and their 
+residuals after projecting on them. 
+\newline
+\newline
+Here is the replicated Table2 in the article
+\begin{table}[H]
+\centering
+\input{../output/table_2.tex}
+\caption*{Table 2: One-year Return Prediction}
+\label{tab:your_label}
+\end{table}    
+
+Here is the Table2 with updated numbers, which means using data until 2024-01-31
+\begin{table}[H]
+    \centering
+    \input{../output/table_2_curr.tex}
+    \caption*{Table 2: Updated One-year Return Prediction}
+    \label{tab:your_label}
+    \end{table}   
+
+
+\section{Additional Summary Statistics}
+We also created summary statistics similar to Table1 for five source data: 
+S\&P500 index, dividend yield, 1-year future price, 1-year 
+zero-coupon yields, and the corresponding discounting factor.
+
+\begin{table}[H]
+\centering
+\input{../output/summary_stats.tex}
+\caption*{Table 3: Summary Statistics for Source Data}
+\label{tab:your_label}
+\end{table}    
+
+
+\section{Data Sources}
+We calculated \(pr_t\) using the S\&P500 indexes and its 1-year expiry 
+future prices extracted from Bloomberg, as well as the 1-year zero-coupon 
+yields extracted from the Federal Reserve’s website. \(pd_t \)is 
+computed via the S\&P500 dividend yield from Bloomberg. These are 
+monthly data from Jan 1988 to Jun 2017 for replication and Jan 1988 
+to Jan 2024 for creating up-to-date tables.
+
+\section{Successes and Challenges}
+In our endeavor to replicate the seminal study, we successfully 
+adhered to the paper's logic and replication methodology. Our access 
+to and automation of data extraction were particularly noteworthy; 
+we were able to seamlessly retrieve data, mirroring the process utilized 
+by the original authors. Moreover, our replication of $pd_t$ and $pr_t$ 
+revealed only minimal discrepancies in comparison to the published results. 
+Significantly, we achieved complete automation of the replication and 
+table generation processes, all operationalized through a single 'doit' 
+command. The thoroughness of our replication was affirmed by the 
+successful passage of all unit tests within reasonable tolerance levels.
+\newline
+\newline
+Despite these successes, we encountered several obstacles. Most notably, 
+we were unable to access the Fama-Bliss database, which was the 
+source of the 1-year zero-coupon yields in the original research. To 
+circumvent this, we sourced the data from the Federal Reserve's website, 
+although this introduced some methodological differences. The yields 
+from the Federal Reserve are spot rates, which may not align with the 
+non-standard rates used in the Fama-Bliss database, potentially leading 
+to discrepancies in our calculated $pr_t$ and the ultimate findings. 
+
+
+\end{document}
