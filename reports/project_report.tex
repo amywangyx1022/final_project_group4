@@ -24,8 +24,12 @@
 \begin{abstract}
   In this project, we endeavor to replicate and validate the 
 findings in the study ``Coronavirus: Impact on Stock Prices and Growth Expectations''
- The core objective is to reproduce the results 
-presented in Figure 1,Figure 5, and Table 1.
+ The core objective is to reproduce the results presented in Figure 1,Figure 5, and Table 1. We soon realized that 
+ Figure 5 and Table 1 are based on OTC market data. From the original paper ``Equity yields ``, the data before 08 was sponsored by
+ Goldman Sachs and BNP Paribas. After requesting this dataset from Professor Ralph Koijen and received a no, we decided
+ to replicate the result using data after 2008. Of course, S&P dividend future market only have data since 2015 (on Bloomberg), so
+ we have fewer data points to work with.  But results show similar trends and we are happy with the progress we've made. 
+ 
   \end{abstract}
 
 
@@ -59,6 +63,7 @@ although this introduced some methodological differences. The yields
 from the Federal Reserve are spot rates, which may not align with the 
 non-standard rates used in the Fama-Bliss database, potentially leading 
 to discrepancies in our calculated $pr_t$ and the ultimate findings. 
-
+\bibliographystyle{apalike}
+\bibliography{references}
 
 \end{document}
