@@ -271,9 +271,7 @@ def task_compile_latex():
     """Compile LaTeX file into PDF."""
     return {
         'actions': ['pdflatex -output-directory=./reports ./reports/project_report.tex'],
-        'file_dep': ['./output/tables/table1.tex', 
-                     './output/table_1_curr.tex', 
-                     './output/summary_stats.tex'],
+        'file_dep': ['./output/tables/table1.tex'],
         'targets': ['./reports/project_report.pdf'],
         'clean': True,
     }
