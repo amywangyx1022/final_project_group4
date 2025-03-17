@@ -19,13 +19,20 @@ over to the other configuration, for example.
 """
 
 from pathlib import Path
+import os
 
 ## Helper for determining OS
 from platform import system
 
 from decouple import config as _config
 from pandas import to_datetime
+from dotenv import load_dotenv
 
+
+# Load .env file
+env_path = Path(__file__).absolute().parent.parent / '.env'
+
+load_dotenv(env_path, override=True)
 
 def get_os():
     os_name = system()
@@ -73,7 +80,10 @@ d["BASE_DIR"] = Path(__file__).absolute().parent.parent
 d["START_DATE"] = _config("START_DATE", default="1965-01-29", cast=to_datetime)
 d["END_DATE"] = _config("END_DATE", default="2022-12-31", cast=to_datetime)
 d["PIPELINE_DEV_MODE"] = _config("PIPELINE_DEV_MODE", default=True, cast=bool)
-d["USE_BBG"] = _config("USE_BBG", default=False, cast=bool)
+
+raw_value = os.environ.get('USE_BBG', 'false')
+d["USE_BBG"] = raw_value.lower() == "true" 
+
 d["PIPELINE_THEME"] = _config("PIPELINE_THEME", default="pipeline")
 d["CURR_END_DATE"] = _config("CURR_END_DATE", default="2022-12-31")
 
