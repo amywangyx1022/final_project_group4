@@ -1,6 +1,7 @@
 """
-This module cleans the raw data from Bloomberg or Excel files.
-We save a clean version of the data in the data folder for record keeping.
+This module cleans the raw data from dividend Parquet files.
+It processes both dividend data and dividend futures data, standardizing formats,
+handling dates, and preparing tidy datasets for later analysis.
 """
 
 import pandas as pd
@@ -8,307 +9,205 @@ import numpy as np
 from settings import config
 from pathlib import Path
 
+# Configuration variables from settings
 DATA_DIR = config("DATA_DIR")
 USE_BBG = config("USE_BBG")
 START_DT = config("START_DATE")
 PAPER_END_DT = config("PAPER_END_DATE")
 CURR_END_DT = config("CURR_END_DATE")
 
-def clean_index_data(end_date, data_dir=DATA_DIR):
+
+def clean_dividend_data():
     """
-    Clean and prepare index data from Bloomberg or Excel
+    Clean and process the dividend data Parquet file.
+    
+    Returns:
+        pd.DataFrame: Cleaned dividend data with proper datetime index
+                      and standardized column names.
+    """
+    # Read the raw dividend data
+    div_data_path = Path(DATA_DIR) / "dividend_data.parquet"
+    
+    # Check if file exists
+    if not div_data_path.exists():
+        raise FileNotFoundError(f"Dividend data file not found at {div_data_path}")
+    
+    # Read the Parquet file
+    df_div = pd.read_parquet(div_data_path)
+    
+    # Make sure the index is a datetime index
+    if not pd.api.types.is_datetime64_dtype(df_div.index):
+        # Try to handle both cases where index might be date or a separate Date column exists
+        if 'Date' in df_div.columns:
+            df_div['Date'] = pd.to_datetime(df_div['Date'])
+            df_div = df_div.set_index('Date')
+        else:
+            df_div.index = pd.to_datetime(df_div.index)
+    
+    # Rename columns to more descriptive names
+    df_div = df_div.rename(columns={
+        'SPX Index_DIV': 'US_Dividend',
+        'SX5E Index_DIV': 'EU_Dividend',
+        'NKY Index_DIV': 'JP_Dividend'
+    })
+    
+    # Sort the index
+    df_div = df_div.sort_index()
+    
+    # Handle missing values (if any)
+    df_div = df_div.fillna(method='ffill')
+    
+    return df_div
+
+
+def clean_dividend_futures_data():
+    """
+    Clean and process the dividend futures data Parquet file.
+    
+    Returns:
+        pd.DataFrame: Cleaned dividend futures data with proper datetime index
+                      and standardized column names.
+    """
+    # Read the raw dividend futures data
+    fut_data_path = Path(DATA_DIR) / "dividend_futures_data.parquet"
+    
+    # Check if file exists
+    if not fut_data_path.exists():
+        raise FileNotFoundError(f"Dividend futures data file not found at {fut_data_path}")
+    
+    # Read the Parquet file
+    df_fut = pd.read_parquet(fut_data_path)
+    
+    # Make sure the index is a datetime index
+    if not pd.api.types.is_datetime64_dtype(df_fut.index):
+        # Try to handle both cases where index might be date or a separate Date column exists
+        if 'Date' in df_fut.columns:
+            df_fut['Date'] = pd.to_datetime(df_fut['Date'])
+            df_fut = df_fut.set_index('Date')
+        else:
+            df_fut.index = pd.to_datetime(df_fut.index)
+    
+    # Rename columns to more descriptive names
+    df_fut = df_fut.rename(columns={
+        'ASD2 Index': 'US_Div_Future',
+        'DED2 Index': 'EU_Div_Future',
+        'MND2 Index': 'JP_Div_Future'
+    })
+    
+    # Sort the index
+    df_fut = df_fut.sort_index()
+    
+    # Handle missing values (if any)
+    df_fut = df_fut.fillna(method='ffill')
+    
+    return df_fut
+
+
+def resample_to_quarterly(df):
+    """
+    Resample data to quarterly frequency (end of quarter)
     
     Parameters:
-        end_date (str): End date to filter data
-        data_dir (Path): Directory containing the data file
+        df (DataFrame): Input dataframe with datetime index
         
     Returns:
-        DataFrame: Cleaned index data
+        DataFrame: Resampled dataframe
     """
-    print(f"Cleaning index data through {end_date}...")
+    if df.empty:
+        return df
     
-    # Determine which file to load based on USE_BBG
-    if USE_BBG:
-        path = Path(data_dir) / "bloomberg_index_data.parquet"
-    else:
-        path = Path(data_dir) / "excel_index_data.parquet"
+    # Double-check the index is a datetime index
+    if not pd.api.types.is_datetime64_dtype(df.index):
+        raise TypeError("DataFrame index must be a datetime index for resampling")
     
-    if not path.exists():
-        # Try the alternative if the primary file doesn't exist
-        alternative_path = Path(data_dir) / ("excel_index_data.parquet" if USE_BBG else "bloomberg_index_data.parquet")
-        if alternative_path.exists():
-            path = alternative_path
-            print(f"Using alternative index data source: {path}")
-        else:
-            raise FileNotFoundError(f"Index data file not found at {path} or {alternative_path}")
+    # Resample to end of quarter
+    quarterly_df = df.resample('QE').last()
     
-    # Load the data
-    df = pd.read_parquet(path)
+    return quarterly_df
+
+
+def merge_dividend_data():
+    """
+    Merge the dividend data with dividend futures data into a single DataFrame.
     
-    # Ensure index is datetime
-    df.index = pd.to_datetime(df.index)
+    Returns:
+        pd.DataFrame: Combined data from both sources
+    """
+    div_data = clean_dividend_data()
+    fut_data = clean_dividend_futures_data()
     
-    # Filter for date range
-    df = df.loc[START_DT:end_date]
-    
-    # Standard column names
-    column_mapping = {
-        'SPX Index': 'SP500',
-        'SX5E Index': 'EUROSTOXX',
-        'NKY Index': 'NIKKEI',
-        'USGG30YR Index': 'US_30Y_YIELD',
-        'GDBR30 Index': 'EU_30Y_YIELD',
-        'GJGB30 Index': 'JP_30Y_YIELD'
-    }
-    
-    # Apply column mapping if needed
-    renamed_columns = {}
-    for old_col, new_col in column_mapping.items():
-        if old_col in df.columns:
-            renamed_columns[old_col] = new_col
-    
-    if renamed_columns:
-        df = df.rename(columns=renamed_columns)
+    # Merge on index (date)
+    merged_data = pd.merge(div_data, fut_data, 
+                          left_index=True, 
+                          right_index=True, 
+                          how='outer')
     
     # Sort by date
-    df = df.sort_index()
+    merged_data = merged_data.sort_index()
     
-    # Handle any missing values
-    df = df.ffill().bfill()
-    
-    return df
+    return merged_data
 
-def clean_dividend_data(end_date, data_dir=DATA_DIR):
-    """
-    Clean and prepare dividend data from Bloomberg or Excel
-    
-    Parameters:
-        end_date (str): End date to filter data
-        data_dir (Path): Directory containing the data file
-        
-    Returns:
-        DataFrame: Cleaned dividend data
-    """
-    print(f"Cleaning dividend data through {end_date}...")
-    
-    # Determine which file to load based on USE_BBG
-    if USE_BBG:
-        path = Path(data_dir) / "bloomberg_dividend_data.parquet"
-    else:
-        path = Path(data_dir) / "excel_dividend_data.parquet"
-    
-    if not path.exists():
-        # Try the alternative if the primary file doesn't exist
-        alternative_path = Path(data_dir) / ("excel_dividend_data.parquet" if USE_BBG else "bloomberg_dividend_data.parquet")
-        if alternative_path.exists():
-            path = alternative_path
-            print(f"Using alternative dividend data source: {path}")
-        else:
-            raise FileNotFoundError(f"Dividend data file not found at {path} or {alternative_path}")
-    
-    # Load the data
-    df = pd.read_parquet(path)
-    
-    # Ensure index is datetime
-    df.index = pd.to_datetime(df.index)
-    
-    # Filter for date range
-    df = df.loc[START_DT:end_date]
-    
-    # Standard column names
-    column_mapping = {
-        'SPX Index_DIV': 'SP500_DIV',
-        'SX5E Index_DIV': 'EUROSTOXX_DIV',
-        'NKY Index_DIV': 'NIKKEI_DIV'
-    }
-    
-    # Apply column mapping if needed
-    renamed_columns = {}
-    for old_col, new_col in column_mapping.items():
-        if old_col in df.columns:
-            renamed_columns[old_col] = new_col
-    
-    if renamed_columns:
-        df = df.rename(columns=renamed_columns)
-    
-    # Also check for other possible column names
-    for col in df.columns:
-        col_lower = str(col).lower()
-        if 's&p' in col_lower or 'sp500' in col_lower or 'sp 500' in col_lower:
-            df = df.rename(columns={col: 'SP500_DIV'})
-        elif 'euro' in col_lower or 'stoxx' in col_lower:
-            df = df.rename(columns={col: 'EUROSTOXX_DIV'})
-        elif 'nikkei' in col_lower or 'japan' in col_lower:
-            df = df.rename(columns={col: 'NIKKEI_DIV'})
-    
-    # Sort by date
-    df = df.sort_index()
-    
-    # Handle any missing values
-    df = df.ffill().bfill()
-    
-    return df
 
-def format_df(df, all_col=True):
+def save_clean_data():
     """
-    Format dataframe values to 3 decimal places
-    
-    Parameters:
-        df (DataFrame): Input dataframe
-        all_col (bool): Whether to format all columns or just numeric ones
-        
-    Returns:
-        DataFrame: Formatted dataframe
+    Save all cleaned datasets to the clean data directory.
     """
-    # Create a copy to avoid modifying the original
-    formatted_df = df.copy()
+    # Create clean data directory if it doesn't exist
+    clean_dir = Path(DATA_DIR) / "clean"
+    clean_dir.mkdir(parents=True, exist_ok=True)
     
-    if all_col:
-        formatted_df = formatted_df.applymap(lambda x: '{:.3f}'.format(x) if isinstance(x, (int, float)) else x)
-    else:
-        # Format only numeric columns (all except first column if it's a date)
-        formatted_df.iloc[:, 1:] = formatted_df.iloc[:, 1:].applymap(
-            lambda x: '{:.3f}'.format(x) if isinstance(x, (int, float)) else x
-        )
-    
-    return formatted_df
+    # Get cleaned dataframes
+    print("Cleaning dividend data...")
+    div_data = clean_dividend_data()
+    print("Dividend data index type:", type(div_data.index))
+    print("First 5 rows of dividend data:")
+    print(div_data.head())
 
-def calculate_yields(price_data, dividend_data):
-    """
-    Calculate dividend yields from price and dividend data
+    print("\nCleaning dividend futures data...")
+    fut_data = clean_dividend_futures_data()
+    print("Dividend futures data index type:", type(fut_data.index))
     
-    Parameters:
-        price_data (DataFrame): Index price data
-        dividend_data (DataFrame): Dividend data
+    print("\nMerging data...")
+    merged_data = merge_dividend_data()
+    print("Merged data index type:", type(merged_data.index))
+    print("First 5 rows of merged data:")
+    print(merged_data.head())
+    
+    # Save daily data as parquet files
+    print("\nSaving daily data...")
+    div_data.to_parquet(clean_dir / "dividend_data_clean.parquet")
+    fut_data.to_parquet(clean_dir / "dividend_futures_clean.parquet")
+    merged_data.to_parquet(clean_dir / "merged_dividend_data.parquet")
+    
+    # Create quarterly versions
+    print("\nResampling to quarterly data...")
+    try:
+        div_data_quarterly = resample_to_quarterly(div_data)
+        fut_data_quarterly = resample_to_quarterly(fut_data)
+        merged_data_quarterly = resample_to_quarterly(merged_data)
         
-    Returns:
-        DataFrame: Dividend yields
-    """
-    print("Calculating dividend yields...")
+        # Save quarterly data
+        print("\nSaving quarterly data...")
+        div_data_quarterly.to_parquet(clean_dir / "dividend_data_clean_quarterly.parquet")
+        fut_data_quarterly.to_parquet(clean_dir / "dividend_futures_clean_quarterly.parquet")
+        merged_data_quarterly.to_parquet(clean_dir / "merged_dividend_data_quarterly.parquet")
+        
+        print("\nFirst 5 rows of quarterly merged data:")
+        print(merged_data_quarterly.head())
+    except Exception as e:
+        print(f"Error during resampling: {e}")
+        print("Will continue with saving daily data only.")
     
-    # Create a new DataFrame with index from price data
-    result = pd.DataFrame(index=price_data.index)
-    
-    # Ensure dividend data is aligned with price data
-    reindexed_div = dividend_data.reindex(index=price_data.index, method='ffill')
-    
-    # Calculate dividend yields
-    for index_name in ['SP500', 'EUROSTOXX', 'NIKKEI']:
-        div_col = f"{index_name}_DIV"
-        if div_col in reindexed_div.columns and index_name in price_data.columns:
-            result[f"{index_name}_YIELD"] = reindexed_div[div_col] / price_data[index_name]
-    
-    return result
+    print("\nAll clean data files saved successfully in Parquet format.")
 
-def combine_data(price_data, dividend_data, yield_data):
+
+def main():
     """
-    Combine all data into a single DataFrame
-    
-    Parameters:
-        price_data (DataFrame): Index price data
-        dividend_data (DataFrame): Dividend data
-        yield_data (DataFrame): Yield data
-        
-    Returns:
-        DataFrame: Combined data
+    Main function to execute the data cleaning process.
     """
-    print("Combining all data...")
-    
-    # Create a new DataFrame with all dates
-    all_dates = price_data.index.union(dividend_data.index).union(yield_data.index)
-    combined_df = pd.DataFrame(index=all_dates)
-    combined_df.index = pd.to_datetime(combined_df.index)
-    combined_df = combined_df.sort_index()
-    
-    # Add price data
-    for col in price_data.columns:
-        combined_df[col] = price_data[col].reindex(index=combined_df.index, method='ffill')
-    
-    # Add dividend data
-    for col in dividend_data.columns:
-        combined_df[col] = dividend_data[col].reindex(index=combined_df.index, method='ffill')
-    
-    # Add yield data
-    for col in yield_data.columns:
-        combined_df[col] = yield_data[col].reindex(index=combined_df.index, method='ffill')
-    
-    return combined_df
+    save_clean_data()
+    print("Data cleaning completed.")
+
 
 if __name__ == "__main__":
-    # Clean index data
-    price_df = clean_index_data(PAPER_END_DT, data_dir=DATA_DIR)
-    
-    # Save cleaned index data
-    price_path = Path(DATA_DIR) / "cleaned_index_data.parquet"
-    price_df.to_parquet(price_path)
-    print(f"Saved cleaned index data to {price_path}")
-    
-    # Clean dividend data
-    try:
-        dividend_df = clean_dividend_data(PAPER_END_DT, data_dir=DATA_DIR)
-        
-        # Save cleaned dividend data
-        div_path = Path(DATA_DIR) / "cleaned_dividend_data.parquet"
-        dividend_df.to_parquet(div_path)
-        print(f"Saved cleaned dividend data to {div_path}")
-        
-        # Calculate yields
-        yields_df = calculate_yields(price_df, dividend_df)
-        
-        # Save yield data
-        yield_path = Path(DATA_DIR) / "calculated_yields.parquet"
-        yields_df.to_parquet(yield_path)
-        print(f"Saved calculated yields to {yield_path}")
-        
-        # Combine all data
-        combined_df = combine_data(price_df, dividend_df, yields_df)
-        
-        # Save combined data
-        combined_path = Path(DATA_DIR) / "combined_data.parquet"
-        combined_df.to_parquet(combined_path)
-        print(f"Saved combined data to {combined_path}")
-        
-        # Also save an Excel version for easy inspection
-        excel_path = Path(DATA_DIR) / "combined_data.xlsx"
-        combined_df.to_excel(excel_path)
-        print(f"Saved combined data to Excel: {excel_path}")
-        
-    except FileNotFoundError as e:
-        print(f"Warning: {e}")
-        print("Skipping dividend data processing.")
-    
-    # Check if we're also processing up to current date
-    if PAPER_END_DT != CURR_END_DT:
-        print(f"\nAlso processing data up to current end date: {CURR_END_DT}")
-        
-        # Clean index data up to current date
-        current_price_df = clean_index_data(CURR_END_DT, data_dir=DATA_DIR)
-        current_price_path = Path(DATA_DIR) / "cleaned_current_index_data.parquet"
-        current_price_df.to_parquet(current_price_path)
-        print(f"Saved cleaned current index data to {current_price_path}")
-        
-        try:
-            # Clean dividend data up to current date
-            current_dividend_df = clean_dividend_data(CURR_END_DT, data_dir=DATA_DIR)
-            current_div_path = Path(DATA_DIR) / "cleaned_current_dividend_data.parquet"
-            current_dividend_df.to_parquet(current_div_path)
-            print(f"Saved cleaned current dividend data to {current_div_path}")
-            
-            # Calculate yields up to current date
-            current_yields_df = calculate_yields(current_price_df, current_dividend_df)
-            current_yield_path = Path(DATA_DIR) / "calculated_current_yields.parquet"
-            current_yields_df.to_parquet(current_yield_path)
-            print(f"Saved calculated current yields to {current_yield_path}")
-            
-            # Combine all current data
-            current_combined_df = combine_data(current_price_df, current_dividend_df, current_yields_df)
-            current_combined_path = Path(DATA_DIR) / "combined_current_data.parquet"
-            current_combined_df.to_parquet(current_combined_path)
-            print(f"Saved combined current data to {current_combined_path}")
-            
-        except FileNotFoundError as e:
-            print(f"Warning: {e}")
-            print("Skipping current dividend data processing.")
-
-
-#TODO: RESAMPLE TO QUARTER FOR DATA PERIOD 2006- 2019
+    main()
