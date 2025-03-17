@@ -1,0 +1,26 @@
+
+\begin{table}[htbp]
+\centering
+\caption{Predictive Regressions of Dividend Growth on Dividend Yields}
+\label{tab:dividend_growth_regression}
+\begin{tabular}{lll}
+\toprule
+ & Coefficient & Std. Error \\
+\midrule
+Intercept & 0.04 & 0.01 \\
+EU dummy & -0.01 & 0.01 \\
+Nikkei 225 dummy & 0.01 & 0.01 \\
+e^(2)_it & 0.15 & 0.15 \\
+R² & 0.02 &  \\
+# Obs & 132.00 &  \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}
+\small
+\item This table shows results from regressions similar to equation (3) in Gormsen and Koijen (2020). 
+In a pooled sample across S\&P 500, Euro Stoxx 50, and Nikkei 225, we regress realized dividend growth
+onto the ex-ante two-year yield and dummy variables for Euro Stoxx 50 and Nikkei 225. 
+HAC standard errors are presented in parentheses. Observations are quarterly from 2006 to 2017.
+\end{tablenotes}
+\end{table}

@@ -192,50 +192,6 @@ def task_summary_stats():
     }
 
 
-def task_example_plot():
-    """Example plots"""
-    file_dep = [Path("./src") / file for file in ["example_plot.py", "pull_fred.py"]]
-    file_output = ["example_plot.png"]
-    targets = [OUTPUT_DIR / file for file in file_output]
-
-    return {
-        "actions": [
-            # "date 1>&2",
-            # "time ipython ./src/example_plot.py",
-            "ipython ./src/example_plot.py",
-        ],
-        "targets": targets,
-        "file_dep": file_dep,
-        "clean": True,
-    }
-
-
-def task_chart_repo_rates():
-    """Example charts for Chart Book"""
-    file_dep = [
-        "./src/pull_fred.py",
-        "./src/chart_relative_repo_rates.py",
-    ]
-    targets = [
-        DATA_DIR / "repo_public.parquet",
-        DATA_DIR / "repo_public.xlsx",
-        DATA_DIR / "repo_public_relative_fed.parquet",
-        DATA_DIR / "repo_public_relative_fed.xlsx",
-        OUTPUT_DIR / "repo_rates.html",
-        OUTPUT_DIR / "repo_rates_normalized.html",
-        OUTPUT_DIR / "repo_rates_normalized_w_balance_sheet.html",
-    ]
-
-    return {
-        "actions": [
-            # "date 1>&2",
-            # "time ipython ./src/chart_relative_repo_rates.py",
-            "ipython ./src/chart_relative_repo_rates.py",
-        ],
-        "targets": targets,
-        "file_dep": file_dep,
-        "clean": True,
-    }
 
 #TODO fix this
 notebook_tasks = {
@@ -310,6 +266,18 @@ def task_run_notebooks():
             "clean": True,
         }
 # fmt: on
+
+def task_compile_latex():
+    """Compile LaTeX file into PDF."""
+    return {
+        'actions': ['pdflatex -output-directory=./reports ./reports/project_report.tex'],
+        'file_dep': ['./output/tables/table1.tex', 
+                     './output/table_1_curr.tex', 
+                     './output/summary_stats.tex'],
+        'targets': ['./reports/project_report.pdf'],
+        'clean': True,
+    }
+
 
 
 
