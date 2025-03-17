@@ -1,4 +1,3 @@
-
 """
 This module loads the S&P 500 index, Nikkei, Eurostoxx index as well as 30 year yields from each from Bloomberg.
 
@@ -57,7 +56,7 @@ def pull_bbg_dividend_data(start_date, end_date):
     dividend_tickers = ['SPX Index', 'SX5E Index', 'NKY Index']
     
     # First pull dividend yields
-    div_yield_df = blp.bdh(dividend_tickers, "BEST_DIV_YLD", start_date, end_date)
+    div_yield_df = blp.bdh(dividend_tickers, "EQY_DVD_YLD_12M", start_date, end_date)
     div_yield_df.columns = div_yield_df.columns.droplevel(1)
     div_yield_df.index.name = 'Date'
     
@@ -78,6 +77,33 @@ def pull_bbg_dividend_data(start_date, end_date):
         div_df[f"{ticker}_DIV"] = div_yield * index_price
     
     return div_df
+
+def pull_bbg_dividend_futures(start_date, end_date):
+    """
+    Pull dividend futures data (ASD2 Index and DED1 Index) from Bloomberg with quarterly dates
+    
+    Parameters:
+        start_date (str): Start date in YYYY-MM-DD format
+        end_date (str): End date in YYYY-MM-DD format
+        
+    Returns:
+        DataFrame: Bloomberg dividend futures data resampled to quarterly dates
+    """
+    from xbbg import blp
+    
+    # Define the dividend futures tickers
+    futures_tickers = ['ASD2 Index', 'DED2 Index', 'MND2 Index']
+    
+    # Pull the daily data first
+    df = blp.bdh(futures_tickers, "PX_LAST", start_date, end_date)
+    df.columns = df.columns.droplevel(1)  # Remove the 'PX_LAST' level from column names
+    df.index.name = 'Date'
+    
+    # Resample to end-of-quarter dates
+    # First, ensure the index is datetime
+    df.index = pd.to_datetime(df.index)
+    
+    return df
 
 def load_bbg_excel(data_dir=BASE_DIR):
     """
@@ -157,6 +183,14 @@ def load_bbg_excel(data_dir=BASE_DIR):
     except Exception as e:
         print(f"Error loading Excel file: {e}")
         raise
+
+def load_dividend_futures_excel(data_dir=BASE_DIR):
+    """
+    Load dividend futures data from Excel file as a fallback when Bloomberg is not available
+    """
+    path = data_dir / 'data_manual' / 'dividend_futures.xlsx'
+    print(f"Loading dividend futures data from {path}...")
+
 
 def load_dividend_excel(data_dir=BASE_DIR):
     """
@@ -249,6 +283,8 @@ if __name__ == "__main__":
             div_df = pull_bbg_dividend_data(START_DATE, END_DATE)
             
             print("Successfully pulled data from Bloomberg!")
+
+            div_futures_df = pull_bbg_dividend_futures(START_DATE, END_DATE)
             
         except Exception as e:
             print(f"Error pulling data from Bloomberg: {e}")
@@ -267,6 +303,8 @@ if __name__ == "__main__":
             # Load dividend data from Excel
             if div_df is None:
                 div_df = load_dividend_excel(BASE_DIR)
+            if div_futures_df is None:
+                div_futures_df = load_dividend_futures_excel(BASE_DIR)
                 
             print("Successfully loaded data from Excel files!")
             
@@ -303,5 +341,15 @@ if __name__ == "__main__":
         csv_path = Path(DATA_DIR) / "dividend_data.csv"
         div_df.to_csv(csv_path)
         print(f"Saved dividend data to CSV: {csv_path}")
-    
+    if div_futures_df is not None:
+        if USE_BBG:
+            div_futures_path = Path(DATA_DIR) / "bloomberg_dividend_futures_data.parquet"
+        else:
+            div_futures_path = Path(DATA_DIR) / "excel_dividend_futures_data.parquet"
+
+        div_futures_df.to_parquet(div_futures_path)
+        csv_path = Path(DATA_DIR) / "dividend_future_data.csv"
+        div_futures_df.to_csv(csv_path)
+        print(f"Saved dividend future data to CSV: {csv_path}")
+            
     print("Data collection process completed!")

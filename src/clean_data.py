@@ -309,3 +309,6 @@ if __name__ == "__main__":
         except FileNotFoundError as e:
             print(f"Warning: {e}")
             print("Skipping current dividend data processing.")
+
+
+#TODO: RESAMPLE TO QUARTER FOR DATA PERIOD 2006- 2019
