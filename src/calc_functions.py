@@ -25,9 +25,6 @@ def calc_pct_returns(data_dir=DATA_DIR):
     return cum_returns
 
 
-def 
-
-
 
 
 

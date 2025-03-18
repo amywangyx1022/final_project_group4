@@ -270,17 +270,10 @@ def save_table1(table, latex_table):
     tables_path = results_path / "tables"
     tables_path.mkdir(parents=True, exist_ok=True)
     
-    # Save as CSV
-    table.to_csv(tables_path / "table1_results.csv")
-    
     # Save raw LaTeX table
     with open(tables_path / "table1_results.tex", 'w') as f:
         f.write(latex_table)
-    
-    # Print the LaTeX table for immediate use
-    print("\nLaTeX Table for Table 1:")
-    print(latex_table)
-    
+   
     print("Table 1 results saved successfully.")
 
 def save_forecasts(forecasts, use_paper_period=True):
