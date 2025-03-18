@@ -197,7 +197,8 @@ def task_replicate_table_1():
         "./src/TABLE1_replication.py"
     ]
     targets = [
-        DATA_DIR / "clean" / "merged_dividend_data_quarterly.parquet"
+        DATA_DIR / "clean" / "merged_dividend_data_quarterly.parquet",
+        OUTPUT_DIR / "tables" / "table1_results.tex"
     ]
 
     return {
