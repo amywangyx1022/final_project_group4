@@ -174,10 +174,11 @@ def task_replicate_figure_1():
     """ """
     file_dep = [
         "./src/settings.py",
-        "./src/figure1_replicate.py"
+        "./src/figure1_replicate.py",
+        DATA_DIR/"clean"/"index_data_clean.parquet"
     ]
     targets = [
-        OUTPUT_DIR / "figures" / "index_data_clean.parquet"
+         OUTPUT_DIR / "figures" / "figure_1.png"
     ]
 
     return {
@@ -194,10 +195,11 @@ def task_replicate_table_1():
     """ """
     file_dep = [
         "./src/settings.py",
-        "./src/TABLE1_replication.py"
+        "./src/TABLE1_replication.py",
+         DATA_DIR / "clean" / "merged_dividend_data_quarterly.parquet",
+        
     ]
     targets = [
-        DATA_DIR / "clean" / "merged_dividend_data_quarterly.parquet",
         OUTPUT_DIR / "tables" / "table1_results.tex"
     ]
 
@@ -215,11 +217,15 @@ def task_replicate_figure_5():
     """ """
     file_dep = [
         "./src/settings.py",
-        "./src/figure5_replicate.py"
+        "./src/figure5_replicate.py",
+         "./_output/figures/forecast_paper_dividend_growth.parquet",
+        "./_output/figures/forecast_updated_dividend_growth.parquet",
+       
     ]
     targets = [
-        OUTPUT_DIR / "figures" / "forecast_paper_dividend_growth.parquet",
-        OUTPUT_DIR / "figures" / "forecast_updated_dividend_growth.parquet"
+        OUTPUT_DIR / "figures" / "paper_figure5_panel_a.png",
+        OUTPUT_DIR / "figures" / "paper_figure5_panel_b.png",
+        OUTPUT_DIR / "figures" / "updated_figure5_combined.png"
     ]
 
     return {
@@ -264,11 +270,11 @@ notebook_tasks = {
             "./src/TABLE1_replication.py",
             "./src/figure5_replicate.py",
             "./src/additional_stats_table.py",
-        ],
-        "targets": [
             OUTPUT_DIR / "figures" /"paper_figure5_panel_a.png",
             OUTPUT_DIR / "figures" /"paper_figure5_panel_b.png",
             OUTPUT_DIR / "figures"/"updated_figure5_combined.png",
+        ],
+        "targets": [
         ],
     },
 }

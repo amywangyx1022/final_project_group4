@@ -229,8 +229,8 @@ if __name__ == "__main__":
             if index_df is None:
                 try:
                     index_df = load_csv_dividend_index_data()
-                    div_index_path = Path(DATA_DIR) / "index_data.parquet"
-                    div_futures_df.to_parquet(div_index_path)
+                    index_path = Path(DATA_DIR) / "index_data.parquet"
+                    index_df.to_parquet(index_path)
                     print("Saved dividend index data")
 
                 except Exception as e:
