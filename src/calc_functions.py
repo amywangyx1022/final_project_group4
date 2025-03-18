@@ -7,7 +7,7 @@ import pandas as pd
 from pathlib import Path
 
 def calc_pct_returns(data_dir=DATA_DIR):
-    path = Path(data_dir) / "cleaned_bbg_index_data.parquet"
+    path = Path(data_dir) / "clean"/"index_data_clean.parquet"
     df = pd.read_parquet(path)
     
     # Define the indices that need yield transformation
@@ -21,14 +21,7 @@ def calc_pct_returns(data_dir=DATA_DIR):
     pct_change = df.dropna().pct_change()
     cum_returns = (1 + pct_change).cumprod()  # Ensures it starts at 1
 
-    
     return cum_returns
-
-
-def 
-
-
-
 
 
 

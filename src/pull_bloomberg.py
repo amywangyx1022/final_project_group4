@@ -12,12 +12,13 @@ import warnings
 
 END_DATE = config("CURR_END_DATE")
 DATA_DIR = config("DATA_DIR")
+DATA_PULL_START_DATE = config("DATA_PULL_START_DATE")
 START_DATE = config("START_DATE")
 BASE_DIR = config("BASE_DIR")
 USE_BBG = config("USE_BBG")
 
 
-def pull_bbg_data(start_date, end_date):
+def pull_equity_and_bond_index_data(start_date, end_date):
     """
     Pull data from Bloomberg for indices and 30-year yields
     
@@ -61,7 +62,7 @@ def pull_bbg_dividend_data(start_date, end_date):
     div_yield_df.index.name = 'Date'
     
     # Pull index prices to calculate dividend values
-    index_df = pull_bbg_data(start_date, end_date)
+    index_df = pull_equity_and_bond_index_data(start_date, end_date)
     
     # Create a new dataframe for dividend values
     div_df = pd.DataFrame(index=div_yield_df.index)
@@ -156,21 +157,25 @@ if __name__ == "__main__":
         try:
             print("Trying to pull data from Bloomberg...")
             
+            #pull index data
+            index_df  = pull_equity_and_bond_index_data(START_DATE,END_DATE)
             # Pull dividend data
-            div_df = pull_bbg_dividend_data(START_DATE, END_DATE)
+            div_df = pull_bbg_dividend_data(DATA_PULL_START_DATE, END_DATE)
             
             # Pull dividend futures data
-            div_futures_df = pull_bbg_dividend_futures(START_DATE, END_DATE)
+            div_futures_df = pull_bbg_dividend_futures(DATA_PULL_START_DATE, END_DATE)
             
             print("Successfully pulled data from Bloomberg!")
             
             # Save the data to both parquet and CSV formats
-            div_df.to_parquet(Path(DATA_DIR) / "bloomberg_dividend_data.parquet")
-            div_df.to_csv(Path(DATA_DIR) / "dividend_data.csv")
+            index_df.to_parquet(Path(DATA_DIR) / "index_data.parquet")
+
+            div_df.to_parquet(Path(DATA_DIR) / "dividend_data.parquet")
+            
             print("Saved dividend data")
             
-            div_futures_df.to_parquet(Path(DATA_DIR) / "bloomberg_dividend_futures_data.parquet")
-            div_futures_df.to_csv(Path(DATA_DIR) / "dividend_future_data.csv")
+            div_futures_df.to_parquet(Path(DATA_DIR) / "dividend_futures_data.parquet")
+            
             print("Saved dividend futures data")
             
         except Exception as e:

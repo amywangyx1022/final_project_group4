@@ -123,8 +123,9 @@ def task_pull_bloomberg():
         "./src/pull_bloomberg.py"
     ]
     targets = [
-        DATA_DIR / "bloomberg_dividend_data.parquet",
-        DATA_DIR / "excel_dividend_data.parquet",
+        DATA_DIR / "dividend_data.parquet",
+        DATA_DIR / "index_data.parquet",
+        DATA_DIR / "dividend_futures_data.parquet"
     ]
 
     return {
@@ -168,23 +169,41 @@ def task_clean_bloomberg_data():
         "clean": True,
     }
 
-    
 
-
-#TODO: CHAGNE THE EXAMPLE TABLE
-def task_summary_stats():
+def task_replicate_figure_1():
     """ """
-    file_dep = ["./src/example_table.py"]
-    file_output = [
-        "example_table.tex",
-        "pandas_to_latex_simple_table1.tex",
+    file_dep = [
+        "./src/settings.py",
+        "./src/figure1_replicate.py"
     ]
-    targets = [OUTPUT_DIR / file for file in file_output]
+    targets = [
+        OUTPUT_DIR / "figures" / "index_data_clean.parquet"
+    ]
 
     return {
         "actions": [
-            "ipython ./src/example_table.py",
-            "ipython ./src/pandas_to_latex_demo.py",
+            "ipython ./src/figure1_replicate.py"
+        ],
+        "targets": targets,
+        "file_dep": file_dep,
+        "clean": True,
+    }
+    
+
+def task_replicate_table_1():
+    """ """
+    file_dep = [
+        "./src/settings.py",
+        "./src/TABLE1_replication.py"
+    ]
+    targets = [
+        DATA_DIR / "clean" / "merged_dividend_data_quarterly.parquet",
+        OUTPUT_DIR / "tables" / "table1_results.tex"
+    ]
+
+    return {
+        "actions": [
+            "ipython ./src/TABLE1_replication.py"
         ],
         "targets": targets,
         "file_dep": file_dep,
@@ -192,20 +211,63 @@ def task_summary_stats():
     }
 
 
+def task_replicate_figure_5():
+    """ """
+    file_dep = [
+        "./src/settings.py",
+        "./src/figure5_replicate.py"
+    ]
+    targets = [
+        OUTPUT_DIR / "figures" / "forecast_paper_dividend_growth.parquet",
+        OUTPUT_DIR / "figures" / "forecast_updated_dividend_growth.parquet"
+    ]
 
-#TODO fix this
+    return {
+        "actions": [
+            "ipython ./src/figure5_replicate.py"
+        ],
+        "targets": targets,
+        "file_dep": file_dep,
+        "clean": True,
+    }
+    
+
+
+
+def task_summary_stats():
+    """ """
+    file_dep = ["./src/additional_stats_table.py"]
+    file_output = [
+        OUTPUT_DIR/"tables"/"additional_stats.tex",
+    ]
+    targets = [OUTPUT_DIR / file for file in file_output]
+
+    return {
+        "actions": [
+            "ipython ./src/additional_stats_table.py",
+        ],
+        "targets": targets,
+        "file_dep": file_dep,
+        "clean": True,
+    } 
+
+
+
 notebook_tasks = {
 
     "brief_tour.ipynb": {
         "file_dep": [
             "./src/pull_bloomberg.py",
-             "./src/clean_table.py"
+             "./src/clean_data.py",
             "./src/calc_functions.py",
+            "./src/figure1_replicate.py",
             "./src/TABLE1_replication.py",
+            "./src/figure5_replicate.py",
+            "./src/additional_stats_table.py",
         ],
         "targets": [
-            OUTPUT_DIR / "repo_rate_spikes_and_relative_reserves_levels.png",
-            OUTPUT_DIR / "rates_relative_to_midpoint.png",
+            OUTPUT_DIR / "figures" /"paper_figure5_combined.png",
+            OUTPUT_DIR / "figures"/"updated_figure5_combined.png",
         ],
     },
 }
@@ -267,17 +329,6 @@ def task_run_notebooks():
         }
 # fmt: on
 
-def task_compile_latex():
-    """Compile LaTeX file into PDF."""
-    return {
-        'actions': ['pdflatex -output-directory=./reports ./reports/project_report.tex'],
-        'file_dep': ['./output/tables/table1.tex'],
-        'targets': ['./reports/project_report.pdf'],
-        'clean': True,
-    }
-
-
-
 
 # ###############################################################
 # ## Task below is for LaTeX compilation
@@ -287,39 +338,21 @@ def task_compile_latex():
 def task_compile_latex_docs():
     """Compile the LaTeX documents to PDFs"""
     file_dep = [
-        "./reports/report_example.tex",
+        "./reports/project_report.tex",
+        "./_output/tables/table1_results.tex",
         "./reports/my_article_header.sty",
-        "./reports/slides_example.tex",
         "./reports/my_beamer_header.sty",
         "./reports/my_common_header.sty",
-        "./reports/report_simple_example.tex",
-        "./reports/slides_simple_example.tex",
-        "./src/example_plot.py",
-        "./src/example_table.py",
     ]
     targets = [
-        "./reports/report_example.pdf",
-        "./reports/slides_example.pdf",
-        "./reports/report_simple_example.pdf",
-        "./reports/slides_simple_example.pdf",
+        "./reports/project_report.pdf",
     ]
 
     return {
         "actions": [
             # My custom LaTeX templates
-            "latexmk -xelatex -halt-on-error -cd ./reports/report_example.tex",  # Compile
-            "latexmk -xelatex -halt-on-error -c -cd ./reports/report_example.tex",  # Clean
-            "latexmk -xelatex -halt-on-error -cd ./reports/slides_example.tex",  # Compile
-            "latexmk -xelatex -halt-on-error -c -cd ./reports/slides_example.tex",  # Clean
-            # Simple templates based on small adjustments to Overleaf templates
-            "latexmk -xelatex -halt-on-error -cd ./reports/report_simple_example.tex",  # Compile
-            "latexmk -xelatex -halt-on-error -c -cd ./reports/report_simple_example.tex",  # Clean
-            "latexmk -xelatex -halt-on-error -cd ./reports/slides_simple_example.tex",  # Compile
-            "latexmk -xelatex -halt-on-error -c -cd ./reports/slides_simple_example.tex",  # Clean
-            #
-            # Example of compiling and cleaning in another directory. This often fails, so I don't use it
-            # f"latexmk -xelatex -halt-on-error -cd -output-directory=../_output/ ./reports/report_example.tex",  # Compile
-            # f"latexmk -xelatex -halt-on-error -c -cd -output-directory=../_output/ ./reports/report_example.tex",  # Clean
+            "latexmk -xelatex -halt-on-error -cd ./reports/project_report.tex",  # Compile
+            "latexmk -xelatex -halt-on-error -c -cd ./reports/project_report.tex",  # Clean
         ],
         "targets": targets,
         "file_dep": file_dep,

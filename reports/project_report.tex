@@ -9,6 +9,7 @@
 % Set page size and margins
 % Replace `letterpaper' with`a4paper' for UK/EU standard size
 \usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+\usepackage{threeparttable}
 
 % Useful packages
 \usepackage{amsmath}
@@ -22,47 +23,105 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-  In this project, we endeavor to replicate and validate the 
-findings in the study ``Coronavirus: Impact on Stock Prices and Growth Expectations''
- The core objective is to reproduce the results presented in Figure 1,Figure 5, and Table 1. We soon realized that 
- Figure 5 and Table 1 are based on OTC market data. From the original paper ``Equity yields ``, the data before 08 was sponsored by
- Goldman Sachs and BNP Paribas. After requesting this dataset from Professor Ralph Koijen and received a no, we decided
- to replicate the result using data after 2008. Of course, S&P dividend future market only have data since 2015 (on Bloomberg), so
- we have fewer data points to work with.  But results show similar trends and we are happy with the progress we've made. 
- 
+  In this project, we aim to replicate and validate the findings from the study Coronavirus: Impact on Stock Prices and Growth Expectations \cite{gormsen2020coronavirus}.
+   Our primary goal is to reproduce the results presented in Figure 1, Figure 5, and Table 1. However, we discovered that Figure 5 and Table 1 rely on OTC market data. 
+   According to the original paper Equity Yields by \cite{van2013equity}, data prior to 2008 was sponsored by Goldman Sachs and BNP Paribas. After we contacted Professor Ralph Koijen for access to this dataset but were denied,
+    we shifted our approach to use data from 2008 onward.
+
+  Because the S\&P dividend futures market data on Bloomberg only dates back to 2015, we have even 
+  fewer data points for our analysis. Nonetheless, our findings show trends consistent with the original study, and we are satisfied with the progress made so far.
   \end{abstract}
 
 
 \section{Introduction}
 This project replicates the pivotal findings in the article. Our 
-objective is to replicate Table 1 and Table 2. Utilizing Bloomberg 
-data for S\&P 500 futures and zero-coupon yields from the Federal 
-Reserve, we not only include analysis from January 1988 to June 
-2017 time frame, but also include data up to January 2024. This 
+objective is to replicate Figure 1, Figure 5 and Table 1. Utilizing Bloomberg 
+data for S\&P 500 dividend futures and index data, we not only include analysis from January 2020 to August 
+2020 time frame, but also include data up to March 2025. This 
 replication effort not only underscores the importance of empirical 
 validation in financial research but also confronts the challenges 
 of data availability and methodological adaptation inherent in such 
 scholarly pursuits.
+\section{Replicated Figure 1}
+
+After we pulled market indices data for the covid period we are interested in, we did the following
+data transformation to calculate prices from the 30 year yield. 
+\[
+\text{Price} 
+= \frac{100}
+  {\bigl(1 + \times \text{Yield}\bigr)^{30}}.
+\]
+
+See the replicated graph: 
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{../_output/figures/figure1.png} 
+  \caption{Replicated Figure 1}
+  \label{fig:example_image}
+\end{figure}
+
+
+\section{Methodology for Figure 5 and Table 1}
+The regression we ran for Table 1 is as follows: 
+\[
+e_{it}^{(n)} = \frac{1}{n}ln(\frac{D_t}{F_t^{(n)}})
+\]
+where n is measured in years. So we later run a pooled regression of realized dividend growth rates on the S\&P 500, 
+the Euro Stoxx 50, and Nikkei 225 onto the 2-year realized yield of the associated index. 
+\[
+\Delta_1 D_{i,t} 
+= \beta_{0i}^D 
++ \beta_{1}^D \, e_{it}^{(2)} 
++ \epsilon_{i,t+4},
+\]
+where t is measured in quarters, and i refers to either S\&P 500, 
+the Euro Stoxx 50, and Nikkei 225
+\section{Replication for Table 1 and Figure 5}
+See the replicated table 1:
+\begin{table}[H]
+  \centering
+  \caption{Predictive Regressions of Dividend Growth on Dividend Yields}
+  \input{../_output/tables/table1_results.tex}
+  \label{tab:your_label}
+  \end{table}
+
+Given that we don't have that many data points (original paper has 143 data points), 
+we've seen a much lower R-squared number. 
+Later then we use those parameters to replicate figure 5, which shows the dynamics of expected dividend growht in the US, EU and Japan.
+ 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{../_output/figures/paper_figure5_combined.png} 
+  \caption{Replicated Figure 5}
+  \label{fig:figure_5}
+\end{figure}
+Even though the parameter estimates were quite different, graph shows very similar trend to what was presented in the paper.
+So we later extend this to the current market status.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{../_output/figures/updated_figure5_combined.png}
+  \caption{Replicated Figure 5 until now}
+  \label{fig:figure_5_current}
+\end{figure}
+
+\section{Additional Summary Stats}
+We also created summary statistics for the three source data's daily returns: S\&P 500 Index, Euro Stoxx 50, and Nikkei 225 so that
+our reader can better understand those three markets on a broader level. 
+
+\begin{table}[H]
+  \centering
+  \caption{Summary Statistics for Source Data}
+  \input{../_output/tables/additional_stats.tex}
+  \label{tab:table3}
+  \end{table}
+
 
 \raggedright
 \section{Successes and Challenges}
-In our endeavor to replicate the seminal study, we successfully adhered to the paper's logic and replication methodology. Our access
-to and automation of data extraction were particularly noteworthy; we were able to seamlessly retrieve data, mirroring the process utilized
-by the original authors. Moreover, our replication of $pd_t$ and $pr_t$
-revealed only minimal discrepancies in comparison to the published results.
-Significantly, we achieved complete automation of the replication and
-table generation processes, all operationalized through a single 'doit'
-command. The thoroughness of our replication was affirmed by the
-successful passage of all unit tests within reasonable tolerance levels.\newline
-\newline
-Despite these successes, we encountered several obstacles. Most notably, 
-we were unable to access the Fama-Bliss database, which was the 
-source of the 1-year zero-coupon yields in the original research. To 
-circumvent this, we sourced the data from the Federal Reserve's website, 
-although this introduced some methodological differences. The yields 
-from the Federal Reserve are spot rates, which may not align with the 
-non-standard rates used in the Fama-Bliss database, potentially leading 
-to discrepancies in our calculated $pr_t$ and the ultimate findings. 
+In our efforts to replicate the original study, we closely followed its methodology and logic. Our automated data extraction process proved especially valuable, allowing us to retrieve data in a manner consistent with the original authors’ approach. Despite the absence of OTC market data, we were still able to produce Figure 5 and Table 1, demonstrating similar trends to those reported in the study.
+
 \bibliographystyle{apalike}
 \bibliography{references}
 

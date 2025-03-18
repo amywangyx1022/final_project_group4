@@ -148,6 +148,19 @@ def merge_dividend_data():
     return merged_data
 
 
+def clean_index_data(end_date, data_dir=DATA_DIR):
+    path = Path(data_dir) /"index_data.parquet"
+    df = pd.read_parquet(path)
+    df.index = pd.to_datetime(df.index)
+    if isinstance(end_date, str):
+        end_date = pd.to_datetime(end_date)
+
+    df = df.loc[START_DT : end_date]
+
+    df.index = pd.to_datetime(df.index)
+
+    return df
+ 
 def save_clean_data():
     """
     Save all cleaned datasets to the clean data directory.
@@ -157,6 +170,9 @@ def save_clean_data():
     clean_dir.mkdir(parents=True, exist_ok=True)
     
     # Get cleaned dataframes
+    print("Cleaning index data...")
+    index_data = clean_index_data(PAPER_END_DT,DATA_DIR)
+
     print("Cleaning dividend data...")
     div_data = clean_dividend_data()
     print("Dividend data index type:", type(div_data.index))
@@ -175,6 +191,8 @@ def save_clean_data():
     
     # Save daily data as parquet files
     print("\nSaving daily data...")
+    index_data.to_parquet(clean_dir / "index_data_clean.parquet")
+
     div_data.to_parquet(clean_dir / "dividend_data_clean.parquet")
     fut_data.to_parquet(clean_dir / "dividend_futures_clean.parquet")
     merged_data.to_parquet(clean_dir / "merged_dividend_data.parquet")

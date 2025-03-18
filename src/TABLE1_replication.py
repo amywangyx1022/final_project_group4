@@ -226,10 +226,8 @@ def create_table1(model_params):
     
     # Create LaTeX table directly
     latex_table = r"""
-\begin{table}[ht]
-\centering
-\caption{Predictive Regressions of Dividend Growth on Dividend Yields}
-\begin{tabular}{lccccc}
+
+\begin{tabular}{lcccccc}
 \toprule
  & Intercept & EU dummy & Nikkei 225 dummy & $e_{it}^{(2)}$ & $R^2$ & \# Obs \\
 \midrule
@@ -241,7 +239,7 @@ $\Delta_1 D_{i,t}$ & """ + f"{model.params[0]:.3f}" + r""" & """ + f"{0.007:.3f}
 \small
 \item This table shows results from regressions similar to (3). In a pooled sample across S\&P 500, Euro Stoxx 50, and Nikkei 225, we regress realized dividend growth onto the ex-ante two-year yield and a dummy equal to 1 for Euro Stoxx 50 observations and a dummy equal to 1 for Nikkei 225 observations. HAC standard errors are presented in parenthesis. Observations are quarterly.
 \end{tablenotes}
-\end{table}
+
 """
 
     # Also create a pandas DataFrame version
@@ -270,17 +268,10 @@ def save_table1(table, latex_table):
     tables_path = results_path / "tables"
     tables_path.mkdir(parents=True, exist_ok=True)
     
-    # Save as CSV
-    table.to_csv(tables_path / "table1_results.csv")
-    
     # Save raw LaTeX table
     with open(tables_path / "table1_results.tex", 'w') as f:
         f.write(latex_table)
-    
-    # Print the LaTeX table for immediate use
-    print("\nLaTeX Table for Table 1:")
-    print(latex_table)
-    
+   
     print("Table 1 results saved successfully.")
 
 def save_forecasts(forecasts, use_paper_period=True):
