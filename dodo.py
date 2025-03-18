@@ -266,7 +266,8 @@ notebook_tasks = {
             "./src/additional_stats_table.py",
         ],
         "targets": [
-            OUTPUT_DIR / "figures" /"paper_figure5_combined.png",
+            OUTPUT_DIR / "figures" /"paper_figure5_panel_a.png",
+            OUTPUT_DIR / "figures" /"paper_figure5_panel_b.png",
             OUTPUT_DIR / "figures"/"updated_figure5_combined.png",
         ],
     },
@@ -340,6 +341,7 @@ def task_compile_latex_docs():
     file_dep = [
         "./reports/project_report.tex",
         "./_output/tables/table1_results.tex",
+        "./_output/tables/additional_stats.tex",
         "./reports/my_article_header.sty",
         "./reports/my_beamer_header.sty",
         "./reports/my_common_header.sty",
