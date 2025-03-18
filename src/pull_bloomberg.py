@@ -12,6 +12,7 @@ import warnings
 
 END_DATE = config("CURR_END_DATE")
 DATA_DIR = config("DATA_DIR")
+DATA_PULL_START_DATE = config("DATA_PULL_START_DATE")
 START_DATE = config("START_DATE")
 BASE_DIR = config("BASE_DIR")
 USE_BBG = config("USE_BBG")
@@ -159,10 +160,10 @@ if __name__ == "__main__":
             #pull index data
             index_df  = pull_equity_and_bond_index_data(START_DATE,END_DATE)
             # Pull dividend data
-            div_df = pull_bbg_dividend_data(START_DATE, END_DATE)
+            div_df = pull_bbg_dividend_data(DATA_PULL_START_DATE, END_DATE)
             
             # Pull dividend futures data
-            div_futures_df = pull_bbg_dividend_futures(START_DATE, END_DATE)
+            div_futures_df = pull_bbg_dividend_futures(DATA_PULL_START_DATE, END_DATE)
             
             print("Successfully pulled data from Bloomberg!")
             

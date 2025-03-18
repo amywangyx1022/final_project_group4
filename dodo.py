@@ -123,8 +123,9 @@ def task_pull_bloomberg():
         "./src/pull_bloomberg.py"
     ]
     targets = [
-        DATA_DIR / "bloomberg_dividend_data.parquet",
-        DATA_DIR / "excel_dividend_data.parquet",
+        DATA_DIR / "dividend_data.parquet",
+        DATA_DIR / "index_data.parquet",
+        DATA_DIR / "dividend_futures_data.parquet"
     ]
 
     return {
@@ -236,7 +237,7 @@ notebook_tasks = {
     "brief_tour.ipynb": {
         "file_dep": [
             "./src/pull_bloomberg.py",
-             "./src/clean_table.py"
+             "./src/clean_data.py",
             "./src/calc_functions.py",
             "./src/TABLE1_replication.py",
             "./src/figure5_replicate.py",
