@@ -142,6 +142,24 @@ def load_csv_dividend_futures_data():
     return df
 
 
+def load_csv_dividend_index_data():
+    """
+    Load dividend index data from CSV file as a fallback when Bloomberg is not available
+    
+    Returns:
+        DataFrame: Dividend index data from CSV
+    """
+    csv_path = Path(DATA_DIR) / "index_data.csv"
+    
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(f"CSV file not found at {csv_path}")
+    
+    print(f"Loading dividend index data from {csv_path}...")
+    df = pd.read_csv(csv_path, parse_dates=['Date'], index_col='Date')
+    
+    return df
+
+
 if __name__ == "__main__":
     print(f"Starting data collection process. USE_BBG set to: {USE_BBG}")
     
@@ -149,6 +167,7 @@ if __name__ == "__main__":
     os.makedirs(DATA_DIR, exist_ok=True)
     
     # Initialize variables for data
+    index_df = None
     div_df = None
     div_futures_df = None
     
@@ -203,9 +222,33 @@ if __name__ == "__main__":
                     div_futures_path = Path(DATA_DIR) / "dividend_futures_data.parquet"
                     div_futures_df.to_parquet(div_futures_path)
                     print("Saved dividend future data")
+
                 except Exception as e:
                     print(f"Error saving dividend futures data")
+
+            if index_df is None:
+                try:
+                    index_df = load_csv_dividend_index_data()
+                    div_index_path = Path(DATA_DIR) / "index_data.parquet"
+                    div_futures_df.to_parquet(div_index_path)
+                    print("Saved dividend index data")
+
+                except Exception as e:
+                    print(f"Error saving dividend index data")
+
+
+
+
+
+
+
+
+
             
+
+
+
+
         except Exception as e:
             print(f"Error loading data from CSV files: {e}")
     
