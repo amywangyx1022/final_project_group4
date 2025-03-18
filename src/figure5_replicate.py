@@ -243,12 +243,10 @@ def save_figure5(fig1, fig2, use_paper_period=True):
     
     # Save Panel A (dividend growth)
     fig1.savefig(figures_path / f"{prefix}figure5_panel_a.png", dpi=300, bbox_inches='tight')
-    #fig1.savefig(figures_path / f"{prefix}figure5_panel_a.pdf", bbox_inches='tight')
-    
+   
     # Save Panel B (GDP growth)
     fig2.savefig(figures_path / f"{prefix}figure5_panel_b.png", dpi=300, bbox_inches='tight')
-   # fig2.savefig(figures_path / f"{prefix}figure5_panel_b.pdf", bbox_inches='tight')
-    
+  
     # Create a combined figure
     fig_combined, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
     
@@ -275,17 +273,16 @@ def save_figure5(fig1, fig2, use_paper_period=True):
         ax_dest.grid(True, linestyle='--', alpha=0.7)
         
         # Configure date formatting
-        ax_dest.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-        ax_dest.xaxis.set_major_locator(mdates.WeekdayLocator(interval=2))
-        plt.setp(ax_dest.xaxis.get_majorticklabels(), rotation=45)
+        ax_dest.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+        ax_dest.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+     
     
     # Adjust layout
     fig_combined.tight_layout()
-    
+
     # Save combined figure
     fig_combined.savefig(figures_path / f"{prefix}figure5_combined.png", dpi=300, bbox_inches='tight')
-    #fig_combined.savefig(figures_path / f"{prefix}figure5_combined.pdf", bbox_inches='tight')
-    
+   
     print(f"Figure 5 saved successfully for {'paper period' if use_paper_period else 'updated period'}.")
 
 def main():

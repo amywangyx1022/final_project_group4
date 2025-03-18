@@ -170,6 +170,26 @@ def task_clean_bloomberg_data():
     }
 
 
+def task_replicate_figure_1():
+    """ """
+    file_dep = [
+        "./src/settings.py",
+        "./src/figure1_replicate.py"
+    ]
+    targets = [
+        OUTPUT_DIR / "figures" / "index_data_clean.parquet"
+    ]
+
+    return {
+        "actions": [
+            "ipython ./src/figure1_replicate.py"
+        ],
+        "targets": targets,
+        "file_dep": file_dep,
+        "clean": True,
+    }
+    
+
 def task_replicate_table_1():
     """ """
     file_dep = [
@@ -211,26 +231,26 @@ def task_replicate_figure_5():
     }
     
 
-""" 
+
 
 def task_summary_stats():
     """ """
-    file_dep = ["./src/example_table.py"]
+    file_dep = ["./src/additional_stats_table.py"]
     file_output = [
-        "example_table.tex",
-        "pandas_to_latex_simple_table1.tex",
+        OUTPUT_DIR/"tables"/"additional_stats.tex",
     ]
     targets = [OUTPUT_DIR / file for file in file_output]
 
     return {
         "actions": [
-            "ipython ./src/example_table.py",
-            "ipython ./src/pandas_to_latex_demo.py",
+            "ipython ./src/additional_stats_table.py",
         ],
         "targets": targets,
         "file_dep": file_dep,
         "clean": True,
-    } """
+    } 
+
+
 
 notebook_tasks = {
 
@@ -239,8 +259,10 @@ notebook_tasks = {
             "./src/pull_bloomberg.py",
              "./src/clean_data.py",
             "./src/calc_functions.py",
+            "./src/figure1_replicate.py",
             "./src/TABLE1_replication.py",
             "./src/figure5_replicate.py",
+            "./src/additional_stats_table.py",
         ],
         "targets": [
             OUTPUT_DIR / "figures" /"paper_figure5_combined.png",
