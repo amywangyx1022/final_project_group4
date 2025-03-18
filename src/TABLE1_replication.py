@@ -267,10 +267,11 @@ def save_table1(table, latex_table):
     results_path = Path(OUTPUT_DIR)
     tables_path = results_path / "tables"
     tables_path.mkdir(parents=True, exist_ok=True)
-    
+    table.to_csv(tables_path/"table1_results.csv")
     # Save raw LaTeX table
     with open(tables_path / "table1_results.tex", 'w') as f:
         f.write(latex_table)
+    
    
     print("Table 1 results saved successfully.")
 
