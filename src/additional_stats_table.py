@@ -12,7 +12,6 @@ PAPER_END_DATE = config("PAPER_END_DATE")
 
 from calc_functions import calc_pct_returns
 returns = calc_pct_returns(DATA_DIR)
-
 returns.describe()
 
 column_names_map = {
@@ -44,7 +43,7 @@ describe_all = (
     rename(index=column_names_map, columns=escape_coverter)
 )
 describe_all['count'] = describe_all['count'].astype(int)
-describe_all.columns.name = 'Full Sample: 1947 - 2023'
+describe_all.columns.name = 'Paper Sample: from 2020 January to 2020 August '
 latex_table_string_all = describe_all.to_latex(escape=False, float_format=float_format_func)
 
 latex_table_string_split = [
@@ -52,6 +51,10 @@ latex_table_string_split = [
 ]
 latex_table_string = '\n'.join(latex_table_string_split)
 # print(latex_table_string)
-path = OUTPUT_DIR / "tables"/f'additional_stats.tex'
+# Append the missing lines
+latex_table_string += "\n\\bottomrule\n\\end{tabular}\n"
+
+# Save the file
+path = OUTPUT_DIR / "tables" / 'additional_stats.tex'
 with open(path, "w") as text_file:
     text_file.write(latex_table_string)
