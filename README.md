@@ -1,6 +1,10 @@
 Replication of "Coronavirus: Impact on Stock Prices and Growth Expectations" Using the ChartBook Template
 =============================================
 
+## Team Member: 
+Amy Wang, Charlotte Zhou
+
+
 ## About this project
 
 In this project, we aim to replicate and validate the findings from the study Coronavirus: Impact on Stock Prices and Growth Expectations. Our primary goal is to reproduce the results presented in Figure 1, Figure 5, and Table 1. 
